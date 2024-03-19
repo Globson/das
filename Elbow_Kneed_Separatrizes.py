@@ -9,13 +9,23 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def findKElbow(df, QI, show_plot=True):
+    # title = f"Elbow for QI {QI}"
+    title = f""
     X = np.unique(df[QI])
     X = np.reshape(X, (-1, 1))
     kmeans = KMeans(n_init="auto").fit(X)
-    visualizer = KElbowVisualizer(kmeans, k=(2, X.size))
+    visualizer = KElbowVisualizer(kmeans, k=(2, X.size), title=title, ylabel='Distortion', ylabel_right='Score')
     visualizer.fit(X)  # Fit the data to the visualizer
     if show_plot:
-        visualizer.set_title(f"Elbow for QI {QI}")
+        visualizer.ax.set_xlabel("k")
+        visualizer.ax.set_ylabel("distortion score")
+        # visualizer.ax.set_ylabel("Pontuação de distorção")
+
+        ax2 = visualizer.ax.twinx()
+        ax2.set_yticks([])
+        ax2.set_yticklabels([])
+        ax2.set_ylabel("fit time (seconds)", labelpad=45)
+        # ax2.set_ylabel("Tempo de treinamento do modelo (segundos)", labelpad=45)
         plt.show()
     else:
         plt.close()
@@ -23,7 +33,7 @@ def findKElbow(df, QI, show_plot=True):
     return visualizer.elbow_value_
 
 
-def anonymizeSeparatiz(df: pd.DataFrame, QIs: list, k: int, type: str = "float", elbow_iterations: int = 10):
+def anonymizeSeparatiz(df: pd.DataFrame, QIs: list, k: int, type: str = "float", elbow_iterations: int = 10, show_plot=False):
     def findMean(arr, n, m, type):
         if type == "int":
             return np.round(np.mean(arr[n : m + 1]))
@@ -46,7 +56,7 @@ def anonymizeSeparatiz(df: pd.DataFrame, QIs: list, k: int, type: str = "float",
         if k == -1:
             k_values = []
             for _ in range(elbow_iterations):
-                k_values.append(findKElbow(new_df, QI, False))
+                k_values.append(findKElbow(new_df, QI, show_plot=show_plot))
             # print(k_values)
             _k = int(np.array(k_values).mean())
 
